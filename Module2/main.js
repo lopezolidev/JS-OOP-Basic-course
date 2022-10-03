@@ -10,7 +10,8 @@ function videoStop(id){
   console.log(`The class is paused by url: ` + secretURL);
 }
 
-export class PlatziClass{ //exporting this function will make the whole file "invisible" and this sole function will be accessible
+// export 
+ class PlatziClass{ //exporting this function will make the whole file "invisible" and this sole function will be accessible
     constructor({
       name,
       videoID,
@@ -63,11 +64,16 @@ class Course {
     name,
     teachers = [],
     lectures = [],
+    isFree = false,
+    lang = "spanish",
   }) {
     this.id = id;
     this._name = name; //using "_" we signal the team to not change this property without using the setter
     this.teachers = teachers;
     this.lectures = lectures;
+    this.isFree = isFree;
+    this.lang = lang;
+    
   }
 
   get name(){ //a getter returns a property value
@@ -119,17 +125,26 @@ class Description {
   }
 }
 
-class Comments {
+class Comment {
   constructor({
-    student,
-    text,
-    type_of_comment,
-    likes,
+    studentName,
+    content, 
+    studentRole = "student", //we declare here the value of studenRole being "student" as default
   }) {
-    this.student = student;
-    this.text = text;
-    this.type_of_comment = type_of_comment;
-    this.likes = likes;
+    this.studentName = studentName;
+    this.content = content;
+    this.studentRole = studentRole;
+    this.likes = 0; //we can set attributes as default by doing this, without declaring them in the constructor
+  } 
+  publishComment(content){ //when using ``, is mandatory to use "this." to refer as execution context the object Comment itself
+    console.log(`
+      ${this.studentName} (${this.studentRole})  
+    `);
+    console.log(`
+      ${this.content};
+    `)
+    console.log(`
+    ${this.likes} likes`);
   }
 }
 
@@ -139,36 +154,46 @@ const cursoNodeJs = new Course({
   id: "curso-nodejs",
   name: "Curso practico de NodeJS",
   teacher: "Alan Brito",
+  isFree: false,
+  lang: "english",
 })
 
 const cursoBI = new Course({
   id: "curso-bi",
   name: "Curso de Business Intelligence",
   teacher: "Silvia Sentís",
+  isFree: false,
+  lang: "spanish",
 })
 
 const cursoPandasNumpy = new Course({
   id: "curso-manipulacion-transformacion-pandas-numpy",
   name: "Curso Básico de Manipulación y Transformación de Datos con Pandas y NumPy",
   teacher: "Carlos Alarcón",
+  isFree: true,
+  lang: "spanish",
 })
 
 const creacionVgs = new Course({
   id: "curso-creacion-vgs",
   name: "Curso de Creación de Videojuegos",
   teacher: "Alberto Pérez-Bermejo",
+  isFree: true,
+  lang: "spanish",
 })
 
 const gameDesign = new Course({
   id: "curso-game-design",
   name: "Curso de Game Design",
   teacher: "Humberto Cervera",
+  isFree: false,
+  lang: "english",
 })
 
 
 
 class User {
-  #name //with ES11 we can "privatize" attributes from our classes
+  // #name //with ES11 we can "privatize" attributes from our classes
 
   constructor({
     name,
@@ -180,7 +205,8 @@ class User {
     approvedCourses = [],
     learningPaths = [],
   }) {
-    this.#name = name; //using the "#" when referencing inside the constructor
+    // this.#name = name; //using the "#" when referencing inside the constructor
+    this.name = name;
     this.email = email;
     this.username = username;
     this.socialMedia = {
@@ -191,23 +217,90 @@ class User {
     this.approvedCourses = approvedCourses;
     this.learningPaths = learningPaths;
   }
-  get name(){
-    return this.#name; //so as in the getters 
+
+  publishComment(commentContent){ //here we insert the method to create new comments using the class Comment
+    const comment = new Comment({
+      studentName: this.name,
+      content: commentContent,
+    })
+    comment.publishComment();
   }
-  set name(newName){
-    this.#name = newName; //and setters
+
+  // get name(){
+  //   // return this.#name; //so as in the getters 
+  //   return this.name;
+  // }
+  // set name(newName){
+  //   // this.#name = newName; //and setters
+  //   this.name = newName;
+  // }
+}
+
+//Applying inheritance
+
+class FreeStudent extends User{
+  constructor(props){
+    super(props); //using "super" we refer to the super class from which is made the inheritance
+  }
+
+  selectCourse(newCourse){
+    if(newCourse.isFree){
+      this.approvedCourses.push(newCourse); //we must use "this." to refer to the object FreeStudent itself
+    } else {
+      console.warn(`Sorry ${this.name}, but ${newCourse.name} is not open`)
+    }
   }
 }
 
+class BasicStudent extends User {
+  constructor(props){
+    super(props);
+  }
+
+  selectCourse(newCourse){
+    if(newCourse.lang !== "english"){
+      this.approvedCourses.push(newCourse);
+    } else {
+      console.warn(`Sorry ${this.name}, but ${newCourse.name} is only available in english`)
+    }
+  }
+}
+
+class ExpertStudent extends User {
+  constructor(props){
+    super(props);
+  }
+
+  selectCourse(newCourse){
+     this.approvedCourses.push(newCourse);
+  }
+}
+
+class TeacherStudent extends User {
+  constructor(props){
+    super(props);
+  }
+  publishComment(commentContent){  //we're overriding the method of publishComment from class User
+    const comment = new Comment({
+      studentName: this.name,
+      content: commentContent,
+      studentRole: "teacher" //here we change the value of attribute studentRole from defaul "student" to "teacher"
+    });
+    comment.publishComment();
+  }
+}
+
+
 const JuanD = new User({
-  // name: "Juan David",
+  name: "Juan David",
   email: "juancito@gmail.com",
   username: "JuanDC",
   instagram: "Juan_DC"
 })
 
-JuanD.name = "Roberto";
-console.log(JuanD.name)
+// JuanD.name = "Roberto";
+// console.log(JuanD.name)
+
 
 // Instancing Description 
 
@@ -255,6 +348,8 @@ const cursoFrontend = new Course({
   id: "curso-frontend-dev",
   name: "Curso basico para Frontend Developer",
   teacher: "Estefany Aguilar",
+  isFree: false,
+  lang: "english",
 })
 
 const cursoPOO = new Course({
@@ -297,8 +392,10 @@ const escuelaVgs = new LearningPath({
   ]
 });
 
-const juan2 = new User({
-  // name: "JuanDC",
+// Instancing students
+
+const juan2 = new FreeStudent({
+  name: "JuanDC",
   username: "juandc",
   email: "juanito@juanito.com",
   twitter: "fjuandc",
@@ -308,11 +405,11 @@ const juan2 = new User({
   ],
 });
 
-juan2.name = "juancho";
-console.log(juan2.name);
+// juan2.name = "juancho";
+// console.log(juan2.name);
 
-const miguelito2 = new User({
-  // name: "Miguelito",
+const miguelito2 = new BasicStudent({
+  name: "Miguelito",
   username: "migelitofeliz",
   email: "miguelito@juanito.com",
   instagram: "migelito_feliz",
@@ -322,11 +419,11 @@ const miguelito2 = new User({
   ],
 });
 
-miguelito2.name = "Miguelacho"; 
-console.log(miguelito2.name);
+// miguelito2.name = "Miguelacho"; 
+// console.log(miguelito2.name);
 
-const mary = new User({
-  // name: "Mary O",
+const mary = new ExpertStudent({
+  name: "Mary O",
   username: "maryomary",
   email: "maryo@email.com",
   instagram: "mary_o",
@@ -336,13 +433,31 @@ const mary = new User({
   ]
 })
 
-mary.name = "maria";
-console.log(mary.name);
+const freddy = new TeacherStudent({
+  name: "Freddy Vega",
+  username: "freddier",
+  email: "f@gep.com",
+  instagram: "freddier_vega"
+})
+
+freddy.publishComment("Excelent job");
+
+// Freddy Vega (teacher)  
+    
+//  
+//       Excelent job;
+    
+// 
+//     0 likes
+
+
+// mary.name = "maria";
+// console.log(mary.name);
 
 
 // accessing getters and setters:
 
-console.log(cursoBI.name);
-cursoBI.name = "Evil programming course";
-cursoBI.name = "New Business Intelligence course";
-console.log(cursoBI);
+// console.log(cursoBI.name);
+// cursoBI.name = "Evil programming course";
+// cursoBI.name = "New Business Intelligence course";
+// console.log(cursoBI);
