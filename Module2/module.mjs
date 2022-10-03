@@ -4,7 +4,7 @@ const class68 = new PlatziClass({
     name: "Javascript: OOP",
     videoID: "sjnvaidncii3j0923092",
 });
-
+console.log("Hello")
 class68.play();
 class68.stop();
 
